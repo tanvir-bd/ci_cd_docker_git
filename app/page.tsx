@@ -11,6 +11,7 @@ export default async function Home() {
         {users.map((user) => (
           <li key={user.id} className="mb-2">
             {user.name}
+            
           </li>
         ))}
       </ol>
