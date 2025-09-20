@@ -1,5 +1,9 @@
 FROM node:18-alpine
 
+# Accept DATABASE_URL as build argument
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 WORKDIR /app
 
 # Copy package files

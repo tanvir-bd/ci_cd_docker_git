@@ -30,6 +30,8 @@ jobs:
           context: .
           push: true
           tags: tanvir909/ci_cd_docker_git:latest
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
