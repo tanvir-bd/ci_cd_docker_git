@@ -11,14 +11,27 @@ jobs:
     steps: 
       - name: Checkout Source
         uses: actions/checkout@v4
+        
       - name: Create .env file
-        run: echo "DATABASE_URL=${{ secrets.MYSQL_PASSWORD }}" >> .env 
-      - name: Build docker image
-        run: docker build -t tanvir909/ci_cd_docker_git .
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env 
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
       - name: Login to docker hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Publish image to docker hub
-        run: docker push tanvir909/ci_cd_docker_git:latest
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: tanvir909/ci_cd_docker_git:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build
@@ -26,7 +39,13 @@ jobs:
     steps:
       - name: Pull image from docker hub
         run: docker pull tanvir909/ci_cd_docker_git:latest
+        
       - name: Delete old container
-        run: docker rm -f nextjs-app-container  
+        run: docker rm -f nextjs-app-container || true
+        
       - name: Run docker container
-        run: docker run -d -p 3000:3000 --name nextjs-app-container tanvir909/ci_cd_docker_git 
+        run: |
+          docker run -d -p 3000:3000 \
+            --name nextjs-app-container \
+            --env DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            tanvir909/ci_cd_docker_git:latest
