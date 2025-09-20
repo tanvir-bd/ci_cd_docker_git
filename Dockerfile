@@ -1,40 +1,33 @@
-FROM node:18-alpine
-
-# Accept DATABASE_URL as build argument
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
+FROM node:18
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm ci
-
-# Copy Prisma schema first
+# Copy Prisma schema
 COPY prisma ./prisma/
 
-# Generate Prisma client
+# Set dummy DATABASE_URL and generate Prisma client
+ENV DATABASE_URL="mysql://build:build@localhost:3306/builddb"
 RUN npx prisma generate
 
-# Copy rest of application
+# Copy application
 COPY . .
 
-# Create next.config.js to handle build issues
-RUN echo 'const nextConfig = { \
-  eslint: { ignoreDuringBuilds: true }, \
-  typescript: { ignoreBuildErrors: true }, \
-  experimental: { \
-    serverComponentsExternalPackages: ["@prisma/client", "prisma"] \
-  } \
-}; \
-module.exports = nextConfig;' > next.config.js
+# Debug: Check what was generated
+RUN echo "=== Checking Prisma generation ===" && \
+    ls -la node_modules/.prisma/client/ && \
+    echo "=== Checking app structure ===" && \
+    find . -name "*.ts" -o -name "*.js" | head -10
 
-# Set memory limit and build with verbose output
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN npm run build
+# Create next.config.js
+RUN echo 'module.exports = { eslint: { ignoreDuringBuilds: true } }' > next.config.js
+
+# Try to build with detailed output
+RUN echo "=== Starting build ===" && \
+    npm run build 2>&1 | tee build.log || (echo "=== Build failed, showing logs ===" && cat build.log && exit 1)
 
 EXPOSE 3000
-
 CMD ["npm", "start"]
