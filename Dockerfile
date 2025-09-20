@@ -1,12 +1,16 @@
 FROM node:18
 WORKDIR /app
-COPY package*.json ./
-# Install ALL dependencies (not just production)
-RUN npm install
-COPY . .
 
-# Create next.config.js to skip ESLint during build
-RUN echo 'module.exports = { eslint: { ignoreDuringBuilds: true } }' > next.config.js
+# Copy package files
+COPY package*.json ./
+RUN npm install
+
+# Copy Prisma schema first
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copy rest of the application
+COPY . .
 
 RUN npm run build
 EXPOSE 3000
