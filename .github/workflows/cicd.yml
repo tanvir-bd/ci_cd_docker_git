@@ -41,4 +41,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f ci_cd_docker_git 
       - name: Run docker container
-        run: docker run -d -p 3000:3000 --name nextjs-app-container tanvir909/ci_cd_docker_git 
+        run: docker run -d -p 3000:3000 --name ci_cd_docker_git tanvir909/ci_cd_docker_git 
