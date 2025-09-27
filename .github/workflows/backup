@@ -37,10 +37,8 @@ jobs:
     steps:
       # Pull the image (if needed)
       - name: Pull Docker image
-        run: sudo docker pull tanvir909/ci_cd_docker_git:latest
-      
+        run: docker pull tanvir909/ci_cd_docker_git:latest
       - name: Delete old container
-        run: sudo docker rm -f ci_cd_docker_git || true
-      
+        run: docker rm -f ci_cd_docker_git 
       - name: Run docker container
-        run: sudo docker run -d -p 3000:3000 --name ci_cd_docker_git tanvir909/ci_cd_docker_git:latest
+        run: docker run -d -p 3000:3000 --name ci_cd_docker_git tanvir909/ci_cd_docker_git 
